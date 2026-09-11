@@ -1,6 +1,6 @@
 # Playwright QA Portfolio
 
-Projeto de portfolio de automacao de testes, combinando **testes de interface (Web UI)** e **testes de API** em uma unica suite, com **Playwright + TypeScript**.
+Projeto de portfolio de automacao de testes, combinando **testes de interface (Web UI)** e **testes de API** em uma unica suite, com **Playwright + TypeScript**. Todo o codigo do projeto — Page Objects, testes, configuracao e ate a aplicacao-alvo (mock-app) — e escrito em TypeScript.
 
 ## Objetivo
 
@@ -15,7 +15,7 @@ Demonstrar, na pratica, boas praticas de automacao de testes:
 
 Sites publicos de demo (usados com frequencia em portfolios de QA) trazem riscos reais para uma suite de testes: podem ficar fora do ar, mudar de layout sem aviso, aplicar rate limiting ou depender de terceiros fora do nosso controle — tudo isso gera flakiness, exatamente o que uma boa estrategia de automacao busca evitar.
 
-Por isso, este projeto inclui uma pequena aplicacao Node nativa (`mock-app/`, sem dependencias de runtime) que sobe localmente (tambem no CI) antes da suite rodar, via `webServer` do Playwright. Isso garante:
+Por isso, este projeto inclui uma pequena aplicacao Node em TypeScript (`mock-app/`, sem dependencias de runtime) que sobe localmente (tambem no CI) antes da suite rodar, via `webServer` do Playwright. Isso garante:
 
 - **Zero dependencia externa** — a suite roda igual em qualquer maquina ou pipeline, sem nem precisar de `npm install` para a propria mock-app.
 - **Determinismo total** — os dados e o comportamento da aplicacao sao conhecidos e controlados.
@@ -25,8 +25,8 @@ Por isso, este projeto inclui uma pequena aplicacao Node nativa (`mock-app/`, se
 
 ```
 qa-portfolio/
-├── mock-app/               # Aplicacao alvo dos testes (Node http nativo, sem deps): loja fake + API REST
-│   └── server.js
+├── mock-app/               # Aplicacao alvo dos testes (TypeScript, Node http nativo, sem deps): loja fake + API REST
+│   └── server.ts
 ├── pages/                  # Page Objects (POM) da camada Web
 │   ├── LoginPage.ts
 │   ├── ProductsPage.ts
@@ -50,6 +50,7 @@ npm test              # roda toda a suite (UI + API)
 npm run test:ui        # apenas os testes de interface
 npm run test:api       # apenas os testes de API
 npm run report          # abre o relatorio HTML da ultima execucao
+npm run typecheck       # checagem de tipos do projeto inteiro (tsc --noEmit)
 ```
 
 O `playwright.config.ts` sobe a `mock-app` automaticamente antes dos testes (na porta 3000) e a encerra ao final — nao e necessario iniciar o servidor manualmente.
@@ -60,6 +61,6 @@ Todo push/PR na branch `main` dispara o workflow [`playwright.yml`](.github/work
 
 ## Stack
 
-- [Playwright](https://playwright.dev/) + TypeScript
-- Node.js `http` nativo (mock-app, zero dependencias de runtime)
+- [Playwright](https://playwright.dev/) + TypeScript (100% do codigo do projeto)
+- Node.js `http` nativo (mock-app, zero dependencias de runtime), executado via [`tsx`](https://github.com/privatenumber/tsx)
 - GitHub Actions (CI)
