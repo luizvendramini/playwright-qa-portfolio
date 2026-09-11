@@ -31,7 +31,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'node mock-app/server.js',
+    command: 'npx tsx mock-app/server.ts',
     url: 'http://localhost:3000/login',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
