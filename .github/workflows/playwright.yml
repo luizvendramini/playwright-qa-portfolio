@@ -1,10 +1,19 @@
 name: Playwright Tests
+run-name: Playwright ${{ inputs.suite || 'regressão completa' }}
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Suíte a executar pela Central
+        type: choice
+        options: [all, ui, api]
+        default: all
+        required: true
 
 jobs:
   test:
@@ -26,8 +35,16 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright tests
-        run: npm test
+      - name: Run selected Playwright suite
+        env:
+          TEST_SUITE: ${{ inputs.suite || 'all' }}
+        run: |
+          case "$TEST_SUITE" in
+            all) npm test ;;
+            ui) npm run test:ui ;;
+            api) npm run test:api ;;
+            *) echo "Unknown Playwright suite" >&2; exit 1 ;;
+          esac
 
       - name: Upload HTML report
         if: always()
