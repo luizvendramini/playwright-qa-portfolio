@@ -1,66 +1,68 @@
-# Playwright QA Portfolio
+# Playwright QA Portfolio — QuickPizza
 
-Projeto de portfolio de automacao de testes, combinando **testes de interface (Web UI)** e **testes de API** em uma unica suite, com **Playwright + TypeScript**. Todo o codigo do projeto — Page Objects, testes, configuracao e ate a aplicacao-alvo (mock-app) — e escrito em TypeScript.
+Suíte de automação **Web UI + API** em Playwright e TypeScript contra a aplicação QuickPizza, mantida pela Grafana. Os testes exercitam o site e a API reais; este repositório não sobe uma loja simulada.
 
-## Objetivo
+## Cenários
 
-Demonstrar, na pratica, boas praticas de automacao de testes:
+- Carregamento da página inicial e disponibilidade da ação principal.
+- Login no usuário de demonstração e geração de uma recomendação real.
+- Validação dos dados apresentados na recomendação.
+- Readiness e conteúdo da API pública.
+- Rejeição de chamadas sem autenticação e de credenciais inválidas.
+- Consulta autenticada dos catálogos de massas, ingredientes e utensílios.
+- Recomendação autenticada respeitando calorias, vegetarianismo e ingredientes excluídos.
 
-- **Page Object Model (POM)** para a camada de UI, isolando seletores e acoes da logica dos testes.
-- **Testes deterministicos e independentes**, sem dependencia de sites externos.
-- **Suite integrada a CI/CD** via GitHub Actions.
-- **Cobertura combinada**: fluxo completo de UI (login, catalogo, carrinho, checkout) e testes de contrato de uma API REST.
+Os testes não criam usuários nem enviam avaliações. A conta pública de demonstração indicada na tela de login é `default` / `12345678`; configure `QUICKPIZZA_USERNAME` e `QUICKPIZZA_PASSWORD` para usar outra conta.
 
-## Por que uma "mock-app" local em vez de um site publico de demonstracao?
+## Executar agora contra o QuickPizza público
 
-Sites publicos de demo (usados com frequencia em portfolios de QA) trazem riscos reais para uma suite de testes: podem ficar fora do ar, mudar de layout sem aviso, aplicar rate limiting ou depender de terceiros fora do nosso controle — tudo isso gera flakiness, exatamente o que uma boa estrategia de automacao busca evitar.
-
-Por isso, este projeto inclui uma pequena aplicacao Node em TypeScript (`mock-app/`, sem dependencias de runtime) que sobe localmente (tambem no CI) antes da suite rodar, via `webServer` do Playwright. Isso garante:
-
-- **Zero dependencia externa** — a suite roda igual em qualquer maquina ou pipeline, sem nem precisar de `npm install` para a propria mock-app.
-- **Determinismo total** — os dados e o comportamento da aplicacao sao conhecidos e controlados.
-- **Testes rapidos e estaveis**, sem depender da disponibilidade de terceiros.
-
-## Estrutura do projeto
-
-```
-qa-portfolio/
-├── mock-app/               # Aplicacao alvo dos testes (TypeScript, Node http nativo, sem deps): loja fake + API REST
-│   └── server.ts
-├── pages/                  # Page Objects (POM) da camada Web
-│   ├── LoginPage.ts
-│   ├── ProductsPage.ts
-│   ├── CartPage.ts
-│   └── CheckoutPage.ts
-├── tests/
-│   ├── ui/                 # Testes de interface (login, fluxo de compra)
-│   └── api/                 # Testes de API (CRUD de produtos)
-├── utils/
-│   └── test-data.ts         # Massa de dados centralizada
-├── playwright.config.ts
-└── .github/workflows/playwright.yml
-```
-
-## Como rodar localmente
+Requer Node.js 18 ou superior.
 
 ```bash
 npm install
-npx playwright install --with-deps chromium   # apenas na 1a vez / se necessario
-npm test              # roda toda a suite (UI + API)
-npm run test:ui        # apenas os testes de interface
-npm run test:api       # apenas os testes de API
-npm run report          # abre o relatorio HTML da ultima execucao
-npm run typecheck       # checagem de tipos do projeto inteiro (tsc --noEmit)
+npx playwright install chromium
+npm test
 ```
 
-O `playwright.config.ts` sobe a `mock-app` automaticamente antes dos testes (na porta 3000) e a encerra ao final — nao e necessario iniciar o servidor manualmente.
+O alvo padrão é `https://quickpizza.grafana.com`. Para executar partes da suíte:
+
+```bash
+npm run test:ui
+npm run test:api
+npm run typecheck
+npm run report
+```
+
+## Executar contra uma instância local
+
+Para evitar depender do serviço público, ou para fazer experimentos de carga maiores, inicie a imagem oficial local do QuickPizza em um terminal:
+
+```bash
+npm run quickpizza:local
+```
+
+Em outro terminal, aponte a suíte para `http://localhost:3333`:
+
+```bash
+QUICKPIZZA_BASE_URL=http://localhost:3333 npm test
+```
+
+Também é possível apontar para uma instância sua usando `QUICKPIZZA_BASE_URL`. A suíte Playwright faz poucas interações; não use o serviço público compartilhado para carga alta.
 
 ## CI
 
-Todo push/PR na branch `main` dispara o workflow [`playwright.yml`](.github/workflows/playwright.yml), que instala as dependencias, sobe os browsers do Playwright e roda a suite completa, publicando o relatorio HTML como artefato.
+O GitHub Actions executa checagem de tipos e os cenários de interface e API contra o alvo padrão. Como o serviço público é compartilhado, a suíte evita criar dados persistentes e mantém poucas requisições por execução.
 
-## Stack
+## Estrutura
 
-- [Playwright](https://playwright.dev/) + TypeScript (100% do codigo do projeto)
-- Node.js `http` nativo (mock-app, zero dependencias de runtime), executado via [`tsx`](https://github.com/privatenumber/tsx)
-- GitHub Actions (CI)
+- `pages/QuickPizzaPage.ts`: ações e seletores da interface QuickPizza.
+- `tests/ui/quickpizza.spec.ts`: cenários Web UI.
+- `tests/api/quickpizza-api.spec.ts`: cenários de API.
+- `utils/quickpizza-auth.ts`: autenticação para cenários protegidos.
+- `playwright.config.ts`: browser, reporter e URL configurável do alvo.
+
+## Aplicação-alvo e documentação
+
+- [QuickPizza](https://quickpizza.grafana.com/)
+- [Código-fonte e execução local com Docker](https://github.com/grafana/quickpizza)
+- [Contrato OpenAPI](https://github.com/grafana/quickpizza/blob/main/quickpizza-openapi.yaml)

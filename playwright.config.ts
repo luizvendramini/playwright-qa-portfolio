@@ -1,13 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-/**
- * Configuracao central do Playwright.
- *
- * `webServer` sobe a mock-app automaticamente antes da suite (e derruba ao final),
- * tanto localmente quanto no CI, eliminando a necessidade de qualquer
- * dependencia externa (sites publicos de demonstracao, APIs de terceiros).
- * Isso torna a suite deterministica e reproduzivel em qualquer ambiente.
- */
+const baseURL = process.env.QUICKPIZZA_BASE_URL ?? 'https://quickpizza.grafana.com';
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -17,7 +11,7 @@ export default defineConfig({
   reporter: [['html', { open: 'never' }], ['list']],
 
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -30,10 +24,4 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: 'npx tsx mock-app/server.ts',
-    url: 'http://localhost:3000/login',
-    reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
-  },
 });
